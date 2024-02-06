@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        table, tr, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 5px 10px;
+        }
+
+        input[type="number"] {
+            width: 50px;
+        }
+    </style>
+    <script>
+        const clearTable = () => {
+            const table = document.querySelector('#results tbody');
+            table.innerHTML = '';
+        }
+
+        const appendResult = (numOfRequests, time) => {
+            const table = document.querySelector('#results tbody');
+            const newRow = table.insertRow();
+            newRow.insertCell();
+            const cell1 = newRow.insertCell();
+            const cell2 = newRow.insertCell();
+
+            cell1.appendChild(document.createTextNode(numOfRequests))
+            cell2.appendChild(document.createTextNode(time))
+        }
+
+        const makeRequest = async (data) => {
+            return fetch('/start', {
+                method: 'post',
+                body: data
+            }).then(async (res) => {
+                const data = await res.json();
+                if (!res.ok) {
+                    throw data;
+                }
+
+                return data;
+            });
+        }
+
+        const randomInRange = (min, max) => {
+            min = Math.ceil(min); // Round up the minimum value
+            max = Math.floor(max); // Round down the maximum value
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        };
+
+        const handleClick = async () => {
+            clearTable();
+            const data = new FormData();
+            const file = document.querySelector('input[name="file"]').files[0];
+            data.set("file", file)
+
+            const repetition = parseInt(document.querySelector('input[name="repetition"]').value);
+            const interval = parseFloat(document.querySelector('input[name="interval"]').value);
+            const threshold = parseInt(document.querySelector('input[name="threshold"]').value);
+
+            const minRequests = parseInt(document.querySelector('input[name="minReq"]').value);
+
+            const start = new Date();
+            let doBreak = false;
+            let rep = 0;
+
+            (function foo() {
+                if (doBreak || rep++ >= repetition){
+                    return;
+                }
+
+                data.set("numOfRequests", randomInRange(minRequests, threshold));
+
+                makeRequest(data)
+                    .then(res => appendResult(res.numOfRequests, res.time))
+                    .catch(err => {
+                        doBreak = true;
+                        console.log("Error: ", err)}
+                    )
+
+                setTimeout(foo, interval * 1000);
+            })();
+        }
+    </script>
+</head>
+
+<body>
+    <!-- <form action="/start" method="post" enctype="multipart/form-data"> -->
+        <label>
+            File:
+            <br />
+            <input type="file" name="file" />
+        </label>
+        <br />
+        <br />
+
+        For <input type="number" name="repetition"/> repetitions, with a pause of <input type="number" name="interval"/> seconds inbetween
+        dispatch random number of requests ranging from <input type="number" value="1" name="minReq"/> to <input type="number" name="threshold" />
+
+        <br />
+        <br />
+
+        <button type="button" onclick="handleClick()">Start</button>
+        <br/>
+        <br/>
+        <table id="results">
+            <thead>
+                <tr>
+                    <th>Results</th>
+                    <th>Number of requests</th>
+                    <th>Time in milliseconds</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <!-- <button type="submit">Start</button> -->
+    <!-- </form> -->
+
+</body>
+
+</html>
