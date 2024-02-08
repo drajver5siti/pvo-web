@@ -37,14 +37,14 @@
             table.innerHTML = '';
         }
 
-        const appendResult = (tableId, numOfRequests, time) => {
+        const appendResult = (tableId, numOfRequests, failedRequests, time) => {
             const table = document.querySelector(`#${tableId} tbody`);
             const newRow = table.insertRow();
             newRow.insertCell();
             const cell1 = newRow.insertCell();
             const cell2 = newRow.insertCell();
 
-            cell1.appendChild(document.createTextNode(numOfRequests))
+            cell1.appendChild(document.createTextNode(`${numOfRequests} (${failedRequests} failed)`))
             cell2.appendChild(document.createTextNode(time))
         }
 
@@ -95,7 +95,7 @@
                 data.set("numOfRequests", generatedArray[rep]);
 
                 makeRequest(data)
-                    .then(res => appendResult(table, res.numOfRequests, res.time))
+                    .then(res => appendResult(table, res.numOfRequests, res.failedRequests, res.time))
                     .catch(err => {
                         appendResult(table, "", "FAILED")
                         console.log("Error: ", err)}

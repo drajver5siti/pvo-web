@@ -83,13 +83,15 @@ app.post(
         const startTime = process.hrtime();
 
         try {
-            const result = await Promise.all(requests);
+            const result = await Promise.allSettled(requests);
             const millis = (process.hrtime(startTime)[0] * 1000) + process.hrtime(startTime)[1] / 1000000;
     
             return res.json({
                 numOfRequests: parseInt(numOfRequests),
+                failedRequests: result.filter(x => x.status === 'rejected').length,
                 time: parseFloat(millis.toFixed(5)),
-                result: result[0]
+                result: result.find(x => x.status === "fulfilled"),
+                error: result.find(x => x.status === "rejected")
             })
         } catch (err) {
             res.status(503);
