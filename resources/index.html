@@ -20,12 +20,21 @@
         }
     </style>
     <script>
-        const clearTable = () => {
-            const table1 = document.querySelector('#first-results tbody');
-            const table2 = document.querySelector('#second-results tbody');
 
-            table1.innerHTML = '';
-            table2.innerHTML = '';
+        let generatedArray = [];
+
+        const handleGenerateRandomSequence = () => {
+            const repetition = parseInt(document.querySelector('input[name="repetition"]').value);
+            const minRequests = parseInt(document.querySelector('input[name="minReq"]').value);
+            const threshold = parseInt(document.querySelector('input[name="threshold"]').value);
+
+            generatedArray = Array.from({ length: repetition }).map(() => randomInRange(minRequests, threshold));
+            document.querySelector('#generated-array').innerHTML = "Random requests sequence: " + generatedArray.join(' ');
+        }
+
+        const clearTable = (tableId) => {
+            const table = document.querySelector(`#${tableId} tbody`);
+            table.innerHTML = '';
         }
 
         const appendResult = (tableId, numOfRequests, time) => {
@@ -59,40 +68,36 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         };
 
-        const handleClick = async () => {
-            clearTable();
+        const handleClick = async (apiHost) => {
+
+            const table = apiHost === 'vm' ? "first-results" : "second-results";
+            clearTable(table);
+
             const data = new FormData();
             const file = document.querySelector('input[name="file"]').files[0];
             data.set("file", file)
 
+            if (apiHost === 'cf') {
+                data.set("toCloudRun", true);
+            }
+
             const repetition = parseInt(document.querySelector('input[name="repetition"]').value);
             const interval = parseFloat(document.querySelector('input[name="interval"]').value);
-            const threshold = parseInt(document.querySelector('input[name="threshold"]').value);
-
-            const minRequests = parseInt(document.querySelector('input[name="minReq"]').value);
-
-            const generatedArray = Array.from({ length: repetition }).map(() => randomInRange(minRequests, threshold));
-            document.querySelector('#generated-array').innerHTML = "Number of requests send by repetition: " + generatedArray.join(' ');
 
             const start = new Date();
             let rep = 0;
 
             (function foo() {
-                if (rep >= repetition * 2){
+                if (rep >= repetition){
                     return;
                 }
 
-                const tableToAppend = rep < repetition ? "first-results" : "second-results";
-                if (rep >= repetition) {
-                    data.set("toCloudRun", "true");
-                }
-
-                data.set("numOfRequests", generatedArray[rep % repetition]);
+                data.set("numOfRequests", generatedArray[rep]);
 
                 makeRequest(data)
-                    .then(res => appendResult(tableToAppend, res.numOfRequests, res.time))
+                    .then(res => appendResult(table, res.numOfRequests, res.time))
                     .catch(err => {
-                        appendResult(tableToAppend, res.numOfRequests, "FAILED")
+                        appendResult(table, "", "FAILED")
                         console.log("Error: ", err)}
                     )
 
@@ -122,33 +127,40 @@
         <p id="generated-array">
         </p>
 
-        <button type="button" onclick="handleClick()">Start</button>
+        <button onclick="handleGenerateRandomSequence()">Generate Random Sequence</button>
+
         <br/>
         <br/>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 50px;">
-            <table id="first-results">
-                <thead>
-                    <tr>
-                        <th>Results</th>
-                        <th>Number of requests</th>
-                        <th>Time in milliseconds</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div>
+                <button type="button" onclick="handleClick('vm')">Start</button>
+                <table id="first-results">
+                    <thead>
+                        <tr>
+                            <th>Results</th>
+                            <th>Number of requests</th>
+                            <th>Time in milliseconds</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
 
-            <table id="second-results">
-                <thead>
-                    <tr>
-                        <th>Results</th>
-                        <th>Number of requests</th>
-                        <th>Time in milliseconds</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div>
+                <button type="button" onclick="handleClick('cf')">Start</button>
+                <table id="second-results">
+                    <thead>
+                        <tr>
+                            <th>Results</th>
+                            <th>Number of requests</th>
+                            <th>Time in milliseconds</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
         <!-- <button type="submit">Start</button> -->
     <!-- </form> -->
