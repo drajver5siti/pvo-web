@@ -35,11 +35,16 @@ const resource = (_) => path.join(__dirname, `/resources/${_}`);
 /**
  * @returns {Promise<Result>} 
  */
-const sendRequest = async (data) => {
-    const HOST = process.env.API_HOST;
-    const PORT = process.env.API_PORT;
+const sendRequest = async (data, toCloudRun) => {
 
-    return fetch(`http://${HOST}:${PORT}/upload`, {
+    /**
+     * if toCloudRun is false send to FIRST_API_HOST else send to SECOND_API_HOST
+     */
+
+    const HOST = toCloudRun ? process.env.SECOND_API_HOST : process.env.FIRST_API_HOST;
+    const PORT = toCloudRun ? process.env.SECOND_API_PORT : process.env.FIRST_API_PORT;
+
+    return fetch(`${HOST}:${PORT}/upload`, {
         method: 'post',
         body: data
     }).then(async (x) => {
@@ -53,8 +58,10 @@ app.post(
     '/start', 
     upload.single('file'),
     async (req, res) => {
-        const { numOfRequests = 1 } = req.body;
+        let { numOfRequests = 1, toCloudRun = false } = req.body;
         const file = req.file;
+
+        toCloudRun = Boolean(toCloudRun);
 
         if (file === undefined) {
             res.status(400);
@@ -70,7 +77,7 @@ app.post(
 
         const requests = Array
             .from({ length: numOfRequests })
-            .map(() => sendRequest(data));
+            .map(() => sendRequest(data, toCloudRun));
 
 
         const startTime = process.hrtime();

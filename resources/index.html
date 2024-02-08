@@ -21,12 +21,15 @@
     </style>
     <script>
         const clearTable = () => {
-            const table = document.querySelector('#results tbody');
-            table.innerHTML = '';
+            const table1 = document.querySelector('#first-results tbody');
+            const table2 = document.querySelector('#second-results tbody');
+
+            table1.innerHTML = '';
+            table2.innerHTML = '';
         }
 
-        const appendResult = (numOfRequests, time) => {
-            const table = document.querySelector('#results tbody');
+        const appendResult = (tableId, numOfRequests, time) => {
+            const table = document.querySelector(`#${tableId} tbody`);
             const newRow = table.insertRow();
             newRow.insertCell();
             const cell1 = newRow.insertCell();
@@ -68,24 +71,32 @@
 
             const minRequests = parseInt(document.querySelector('input[name="minReq"]').value);
 
+            const generatedArray = Array.from({ length: repetition }).map(() => randomInRange(minRequests, threshold));
+            document.querySelector('#generated-array').innerHTML = "Number of requests send by repetition: " + generatedArray.join(' ');
+
             const start = new Date();
-            let doBreak = false;
             let rep = 0;
 
             (function foo() {
-                if (doBreak || rep++ >= repetition){
+                if (rep >= repetition * 2){
                     return;
                 }
 
-                data.set("numOfRequests", randomInRange(minRequests, threshold));
+                const tableToAppend = rep < repetition ? "first-results" : "second-results";
+                if (rep >= repetition) {
+                    data.set("toCloudRun", "true");
+                }
+
+                data.set("numOfRequests", generatedArray[rep % repetition]);
 
                 makeRequest(data)
-                    .then(res => appendResult(res.numOfRequests, res.time))
+                    .then(res => appendResult(tableToAppend, res.numOfRequests, res.time))
                     .catch(err => {
-                        doBreak = true;
+                        appendResult(tableToAppend, res.numOfRequests, "FAILED")
                         console.log("Error: ", err)}
                     )
 
+                rep++;
                 setTimeout(foo, interval * 1000);
             })();
         }
@@ -108,20 +119,37 @@
         <br />
         <br />
 
+        <p id="generated-array">
+        </p>
+
         <button type="button" onclick="handleClick()">Start</button>
         <br/>
         <br/>
-        <table id="results">
-            <thead>
-                <tr>
-                    <th>Results</th>
-                    <th>Number of requests</th>
-                    <th>Time in milliseconds</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 50px;">
+            <table id="first-results">
+                <thead>
+                    <tr>
+                        <th>Results</th>
+                        <th>Number of requests</th>
+                        <th>Time in milliseconds</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+            <table id="second-results">
+                <thead>
+                    <tr>
+                        <th>Results</th>
+                        <th>Number of requests</th>
+                        <th>Time in milliseconds</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
         <!-- <button type="submit">Start</button> -->
     <!-- </form> -->
 
