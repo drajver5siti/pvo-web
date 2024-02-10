@@ -98,13 +98,14 @@
                 data.set("numOfRequests", generatedArray[rep]);
 
                 makeRequest(data)
-                    .then(res => appendResult(table, count++, res.numOfRequests, res.failedRequests, res.time))
+                    .then(res => appendResult(table, count, res.numOfRequests, res.failedRequests, res.time))
                     .catch(err => {
                         appendResult(table, "", "", "FAILED")
                         console.log("Error: ", err)}
                     )
 
                 rep++;
+                count++;
                 setTimeout(foo, interval * 1000);
             })();
         }
