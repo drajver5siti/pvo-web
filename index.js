@@ -5,10 +5,10 @@ import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import dotenv from 'dotenv';
-import { fetch } from 'undici';
+import { Agent, fetch, setGlobalDispatcher } from 'undici';
 
 dotenv.config();
-
+setGlobalDispatcher(new Agent({ connect: { timeout: 60_000 }}))
 
 /**
  * @typedef Result
