@@ -42,6 +42,7 @@
             data.forEach((row) => {
                 const { repetition, numOfRequests, failedRequests, time } = row;
                 const newRow = table.insertRow();
+                newRow.insertCell();
                 const cell1 = newRow.insertCell();
                 const cell2 = newRow.insertCell();
                 const cell3 = newRow.insertCell();
