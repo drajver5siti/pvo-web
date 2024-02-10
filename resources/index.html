@@ -88,6 +88,7 @@
 
             const start = new Date();
             let rep = 0;
+            let count = 1;
 
             (function foo() {
                 if (rep >= repetition){
@@ -97,7 +98,7 @@
                 data.set("numOfRequests", generatedArray[rep]);
 
                 makeRequest(data)
-                    .then(res => appendResult(table, rep, res.numOfRequests, res.failedRequests, res.time))
+                    .then(res => appendResult(table, count++, res.numOfRequests, res.failedRequests, res.time))
                     .catch(err => {
                         appendResult(table, "", "", "FAILED")
                         console.log("Error: ", err)}
