@@ -37,15 +37,17 @@
             table.innerHTML = '';
         }
 
-        const appendResult = (tableId, numOfRequests, failedRequests, time) => {
+        const appendResult = (tableId, repetition, numOfRequests, failedRequests, time) => {
             const table = document.querySelector(`#${tableId} tbody`);
             const newRow = table.insertRow();
             newRow.insertCell();
             const cell1 = newRow.insertCell();
             const cell2 = newRow.insertCell();
+            const cell3 = newRow.insertCell();
 
-            cell1.appendChild(document.createTextNode(`${numOfRequests} (${failedRequests} failed)`))
-            cell2.appendChild(document.createTextNode(time))
+            cell1.appendChild(document.createTextNode(`${repetition}.`))
+            cell2.appendChild(document.createTextNode(`${numOfRequests} (${failedRequests} failed)`))
+            cell3.appendChild(document.createTextNode(time))
         }
 
         const makeRequest = async (data) => {
@@ -95,9 +97,9 @@
                 data.set("numOfRequests", generatedArray[rep]);
 
                 makeRequest(data)
-                    .then(res => appendResult(table, res.numOfRequests, res.failedRequests, res.time))
+                    .then(res => appendResult(table, rep, res.numOfRequests, res.failedRequests, res.time))
                     .catch(err => {
-                        appendResult(table, "", "FAILED")
+                        appendResult(table, "", "", "FAILED")
                         console.log("Error: ", err)}
                     )
 
@@ -138,6 +140,7 @@
                     <thead>
                         <tr>
                             <th>Results</th>
+                            <th>Repetition</th>
                             <th>Number of requests</th>
                             <th>Time in milliseconds</th>
                         </tr>
@@ -153,6 +156,7 @@
                     <thead>
                         <tr>
                             <th>Results</th>
+                            <th>Repetition</th>
                             <th>Number of requests</th>
                             <th>Time in milliseconds</th>
                         </tr>
