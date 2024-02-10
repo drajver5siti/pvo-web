@@ -22,6 +22,7 @@
     <script>
 
         let generatedArray = [];
+        let tableData = {};
 
         const handleGenerateRandomSequence = () => {
             const repetition = parseInt(document.querySelector('input[name="repetition"]').value);
@@ -32,22 +33,25 @@
             document.querySelector('#generated-array').innerHTML = "Random requests sequence: " + generatedArray.join(' ');
         }
 
-        const clearTable = (tableId) => {
+        const renderTable = (tableId, tableData) => {
             const table = document.querySelector(`#${tableId} tbody`);
             table.innerHTML = '';
-        }
+            
+            data = tableData.sort((a, b) => a.repetition - b.repetition);
 
-        const appendResult = (tableId, repetition, numOfRequests, failedRequests, time) => {
-            const table = document.querySelector(`#${tableId} tbody`);
-            const newRow = table.insertRow();
-            newRow.insertCell();
-            const cell1 = newRow.insertCell();
-            const cell2 = newRow.insertCell();
-            const cell3 = newRow.insertCell();
+            data.forEach((row) => {
+                const { repetition, numOfRequests, failedRequests, time } = row;
+                const newRow = table.insertRow();
+                const cell1 = newRow.insertCell();
+                const cell2 = newRow.insertCell();
+                const cell3 = newRow.insertCell();
 
-            cell1.appendChild(document.createTextNode(`${repetition}.`))
-            cell2.appendChild(document.createTextNode(`${numOfRequests} (${failedRequests} failed)`))
-            cell3.appendChild(document.createTextNode(time))
+                cell1.appendChild(document.createTextNode(`${repetition}.`))
+                const failed = failedRequests === -1 ? '' : `(${failedRequests} failed)`;
+                cell2.appendChild(document.createTextNode(`${numOfRequests} ${failed}`))
+                cell3.appendChild(document.createTextNode(time))
+            })
+
         }
 
         const makeRequest = async (data) => {
@@ -73,7 +77,8 @@
         const handleClick = async (apiHost) => {
 
             const table = apiHost === 'vm' ? "first-results" : "second-results";
-            clearTable(table);
+            tableData[table] = [];
+            renderTable(table, tableData[table]);
 
             const data = new FormData();
             const file = document.querySelector('input[name="file"]').files[0];
@@ -99,11 +104,26 @@
                 const count = rep;
 
                 makeRequest(data)
-                    .then(res => appendResult(table, count + 1, res.numOfRequests, res.failedRequests, res.time))
-                    .catch(err => {
-                        appendResult(table, "", "", "FAILED")
+                    .then((res) => {
+                        tableData[table].push({ 
+                            repetition: count + 1, 
+                            numOfRequests: res.numOfRequests, 
+                            failedRequests: res.failedRequests,
+                            time: res.time
+                        })
+                    })
+                    .catch((err) => {
+                        tableData[table].push({
+                            repetition: count + 1,
+                            numOfRequests: -1,
+                            failedRequests: -1,
+                            time: -1
+                        })
                         console.log("Error: ", err)}
                     )
+                    .finally(() => {
+                        renderTable(table, tableData[table]);
+                    })
 
                 rep++;
                 setTimeout(foo, interval * 1000);
