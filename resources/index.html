@@ -37,9 +37,14 @@
             const table = document.querySelector(`#${tableId} tbody`);
             table.innerHTML = '';
             
-            data = tableData.sort((a, b) => a.repetition - b.repetition);
+            const data = tableData.filter((x) => x !== null).sort((a, b) => a.repetition - b.repetition);
 
             data.forEach((row) => {
+
+                if (row === null) {
+                    return;
+                }
+
                 const { repetition, numOfRequests, failedRequests, time } = row;
                 const newRow = table.insertRow();
                 newRow.insertCell();
@@ -78,22 +83,28 @@
         const handleClick = async (apiHost) => {
 
             const table = apiHost === 'vm' ? "first-results" : "second-results";
-            tableData[table] = [];
-            renderTable(table, tableData[table]);
-
+            
             const data = new FormData();
             const file = document.querySelector('input[name="file"]').files[0];
             data.set("file", file)
-
+            
             if (apiHost === 'cf') {
                 data.set("toCloudRun", true);
             }
-
+            
             const repetition = parseInt(document.querySelector('input[name="repetition"]').value);
             const interval = parseFloat(document.querySelector('input[name="interval"]').value);
 
-            const start = new Date();
+            tableData[table] = [];
 
+            for (let i = 0; i < repetition; i++) {
+                tableData[table][i] = null;
+            }
+
+            renderTable(table, tableData[table]);
+            
+            const start = new Date();
+            
             (function foo(rep = 0) {
                 if (rep >= repetition){
                     return;
