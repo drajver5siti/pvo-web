@@ -126,6 +126,30 @@
                 setTimeout(() => foo(rep + 1), interval * 1000);
             })();
         }
+
+        const handleExport = () => {
+            let csv = "";
+            csv += `Number of requests (2 seconds pause inbetween),Compute Engine,Cloud Run\n`
+
+            for (let i = 0; i < tableData['first-results'].length; i++) {
+
+                const first = tableData['first-results'][i];
+                const second = tableData['second-results'][i];
+
+                csv += `${first.numOfRequests},${first.time},${second.time}\n`;
+            }
+
+            const blob = new Blob([csv], { type: 'text/csv' })
+
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "data.csv"
+
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            // navigator.clipboard.writeText(csv).then(() => console.log("Copied"));
+        }
     </script>
 </head>
 
@@ -185,6 +209,11 @@
                 </table>
             </div>
         </div>
+        <br/>
+        <br/>
+        <br/>
+        <br/>
+        <button onclick="handleExport()">Copy csv</button>
         <!-- <button type="submit">Start</button> -->
     <!-- </form> -->
 
