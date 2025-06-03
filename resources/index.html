@@ -93,29 +93,26 @@
             const interval = parseFloat(document.querySelector('input[name="interval"]').value);
 
             const start = new Date();
-            let rep = 0;
 
-            (function foo() {
+            (function foo(rep = 0) {
                 if (rep >= repetition){
                     return;
                 }
 
                 data.set("numOfRequests", generatedArray[rep]);
 
-                const count = rep;
-
                 makeRequest(data)
                     .then((res) => {
-                        tableData[table].push({ 
-                            repetition: count + 1, 
+                        tableData[table][rep] = ({ 
+                            repetition: rep + 1, 
                             numOfRequests: res.numOfRequests, 
                             failedRequests: res.failedRequests,
                             time: res.time
                         })
                     })
                     .catch((err) => {
-                        tableData[table].push({
-                            repetition: count + 1,
+                        tableData[table][rep] = ({
+                            repetition: rep + 1,
                             numOfRequests: -1,
                             failedRequests: -1,
                             time: -1
@@ -126,8 +123,7 @@
                         renderTable(table, tableData[table]);
                     })
 
-                rep++;
-                setTimeout(foo, interval * 1000);
+                setTimeout(() => foo(rep + 1), interval * 1000);
             })();
         }
     </script>
